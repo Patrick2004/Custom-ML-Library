@@ -38,20 +38,22 @@ class Polynomial_Linear_Regression:
 class Multiple_Linear_Regression:
     def __init__(self):
         
-        self.weight = [0, 1]
+        self.weight = [0]
         self.cost = []
         self.learning_rate = 0
         
     def dataset(self, x, y):
         self.x = x
         self.y = y
-        self.size = len(x)
+
+        self.parameter_count = len(self.x[0])
+        for i in range(self.parameter_count):
+            self.weight.append(1)
+        self.size = len(y)
         
     def train(self, epoch, batch_size, learning_rate):
         self.learning_rate = learning_rate
         self.batch_size = batch_size
-        error = 0
-        weight = []
 
         data_batch = []
         
@@ -76,7 +78,7 @@ class Multiple_Linear_Regression:
             cost = self.cost_function(data_batch[0][i], data_batch[1][i])
             print("epoch: {} (cost: {:.20f})".format(e+1, cost))
 
-        arr_y = [self.weight[0]+self.weight[1]*x for x in self.x]
+        arr_y = [self.predict(x) for x in self.x]
         arr_x = self.x
 
         plt.scatter(self.x, self.y)
@@ -87,27 +89,28 @@ class Multiple_Linear_Regression:
         plt.show()
 
     def predict(self, x):
-        return sum([self.weight[i]*(x**i) for i in range(len(self.weight))])   
+        return sum([self.weight[i+1]*x[i] for i in range(len(x))]) + self.weight[0]
 
     def predictList(self, X):
         result = []
         for x in X:
-            result.append(sum([self.weight[i]*(x**i) for i in range(len(self.weight))]))
+            result.append(sum([self.weight[i+1]*x[i] for i in range(len(x))]) + self.weight[0])
         return result
 
     def cost_function(self, X, Y):
-        cost = (self.learning_rate/(2*len(X)))*sum([(self.predict(X[i]) - Y[i])**2 for i in range(len(X))])
+        cost = (self.learning_rate/(2*len(X)))*sum([(self.predict(X[i]) - Y[i])**2 for i in range(len(Y))])
         self.cost += [cost]
         return cost
     
     def gradient_descent(self, X, Y):
-        for j in range(len(self.weight)):
-            self.weight[j] -= (self.learning_rate/len(X))*sum( [(self.predict(X[i]) - Y[i] )*X[i] for i in range(len(X))] )
+        for j in range(self.parameter_count):
+            self.weight[j+1] -= (self.learning_rate/len(X))*sum( [(self.predict(X[i]) - Y[i] )*X[i][j] for i in range(len(Y))])
+        self.weight[0] -= (self.learning_rate/len(X))*sum([(self.predict(X[i]) - Y[i]) for i in range(len(Y))])
 
 MLR = Multiple_Linear_Regression()
-MLR.dataset([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30])
-MLR.train(100, 15, 0.001)
-print("\nMultiple LR: ", MLR.predictList([2, 6, 8, 20]))
+MLR.dataset([[1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15]], [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30])
+MLR.train(100, 15, 0.04)
+print("\nMultiple LR: ", MLR.predictList([[2], [6], [8], [20]]))
 
 PLR = Polynomial_Linear_Regression()
 PLR.dataset([1, 2, 3, 4, 5, 6, 7], [2, 4, 6, 8, 10, 12, 14])
