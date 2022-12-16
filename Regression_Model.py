@@ -7,6 +7,15 @@ class Regression_Model:
         self.weight = [0]
         self.cost = []
         self.learning_rate = 0
+
+    def print_weights(self):
+        print(self.weight)
+
+    def save_weights(self):
+        f = open("saved_weights.txt", 'a')
+        f.write(str(self.weight))
+        f.close()
+        
         
     def dataset(self, x, y):
         self.x = x
@@ -43,7 +52,7 @@ class Regression_Model:
                 self.gradient_descent(data_batch[0][i], data_batch[1][i])
                 
             cost = self.cost_function(self.x, self.y)
-            print("epoch: {} (cost: {:.20f})".format(e+1, cost))
+        print("epoch: {} (cost: {:.20f})".format(e+1, cost))
 
         self.printModelPerformance(epoch)
 
@@ -83,7 +92,18 @@ class Linear_Regression(Regression_Model):
 class Logistic_Regression(Regression_Model):
     
     def predict(self, x):
-        return 1/(1 + math.e**(-(sum([self.weight[i+1]*x[i] for i in range(len(x))]) + self.weight[0])))
+        result = 1/(1 + math.e**(-(sum([self.weight[i+1]*x[i] for i in range(len(x))]) + self.weight[0]))) 
+        
+        return result
+
+    def categorise(self, result):
+        cat_result = []
+        for i in result:
+            if i < 0.5:
+                cat_result.append('0')
+            else:
+                cat_result.append('1')
+        return cat_result
 
     def cost_function(self, X, Y):
         cost = -(1/len(X)) * sum( [Y[i]*math.log(self.predict(X[i]), 10) + (1 - Y[i])*math.log(1-self.predict(X[i]), 10) for i in range(len(Y))])
@@ -92,25 +112,33 @@ class Logistic_Regression(Regression_Model):
     
     def gradient_descent(self, X, Y):
         for j in range(self.parameter_count):
-            self.weight[j] -= (self.learning_rate/len(X))*sum( [(self.predict(X[i]) - Y[i] )*X[i][j] for i in range(len(Y))])
+            self.weight[j+1] -= (self.learning_rate/len(X))*sum( [(self.predict(X[i]) - Y[i] )*X[i][j] for i in range(len(Y))])
+        self.weight[0] -= (self.learning_rate/len(X))*sum([(self.predict(X[i]) - Y[i]) for i in range(len(Y))])
         
 y_arr = []
 x_arr = []
-catagory = []
+category = []
 
 with open("candy-data.csv") as f:
     file = csv.reader(f)
     for i, row in enumerate(file):
         if i == 0:
+            category = row[1:10]
+            print(category)
             continue
-        
-        y_arr.append((row[1:10]))
-        x_arr.append(list(map(int, list(map(float, row[10:])))))
+        l = list(map(float, row[10:-1]))
+        l.append(float(row[-1])/100)
+        y_arr.append(int(row[9]))
+        x_arr.append(l)
 
 MLR = Logistic_Regression()
+##print(x_arr)
+##print(y_arr)
 MLR.dataset(x_arr, y_arr)
-MLR.train(20, 20, 0.0001)
-print("\nMultiple LR: ", MLR.predictList([x_arr[2], x_arr[6], x_arr[8], x_arr[20]]))
+MLR.train(3000, 32, 0.01)
+print("\nMultiple LR: ", MLR.categorise(MLR.predictList([x_arr[1], x_arr[2], x_arr[3], x_arr[4]])))
+MLR.print_weights()
+MLR.save_weights()
 
 class Polynomial_Regression:
     def __init__(self):
@@ -136,9 +164,12 @@ class Polynomial_Regression:
 
     def predict(self, X):
         result = []
+        
         for x in X:
             result.append(sum([self.weight[-(i+1)]*(x**i) for i in range(len(self.weight))]))
         return result
+
+
 
 
 
