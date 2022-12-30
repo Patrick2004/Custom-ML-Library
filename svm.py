@@ -1,4 +1,3 @@
-from operator import truediv
 import numpy as np
 import matplotlib.pyplot as plt
 import sys, csv, math
