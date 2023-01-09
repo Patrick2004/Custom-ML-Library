@@ -321,6 +321,7 @@ class SVM(Regression_Model): #HARD MARGIN VS SOFT MARGIN
 # print(svm.classify([[1, -2, 0], [1, -20, 0], [-1, 15, 10], [100, 102, 10], [1, 6, 10]]))
 
 class DecisionTree():
+
     def __init__(self):
         self.CLASSIFICATION = 1
         self.REGRESSION = 1
@@ -336,13 +337,28 @@ class DecisionTree():
 
         self.parameter_count = len(self.x[0])
         self.class_count = len(self.y[0])
+    
+    def train(self, branchtype):
+        pass
 
     def regressionSplit(self):
         pass
     
     def classificationSplit(self):
-        pk = np.sum(self.y, axis=0)/len(X)
-        
-        gini_score = np.sum(pk*(1-pk))
-        print(gini_score, type(gini_score))
-        # return gini_score
+        xt = np.transpose(self.x)
+        print(xt, end='\n\n')
+
+        relative_gini_score = []
+        for x in xt:
+            _, counts = np.unique(x, return_counts=True)
+            pk = counts/np.sum(counts)
+            gini_score = np.sum(pk*(1-pk))
+
+            relative_gini_score.append(abs(gini_score - 0.5)) #Higher relative score indicates better split/purity
+
+        print(relative_gini_score, end='\n\n')
+        return np.argsort(relative_gini_score)[::-1]
+    
+dt = DecisionTree()
+dt.dataset([[1, 3, 4], [2, 2, 2], [3, 3, 2], [4, 1, 2], [5, 6, 5]], [[1, 0, 0], [0, 1, 0], [1, 0, 0], [0, 0, 1], [1, 0, 0]])
+print(dt.classificationSplit())
