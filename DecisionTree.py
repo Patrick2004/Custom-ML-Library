@@ -336,7 +336,7 @@ class DecisionTree():
         self.y = np.array(Y) #[np.array(y) for y in Y]
 
         self.parameter_count = len(self.x[0])
-        self.class_count = len(self.y[0])
+        self.class_count = np.max(self.y) + 1 #len(self.y[0])
     
     def train(self, branchtype):
         pass
@@ -349,16 +349,31 @@ class DecisionTree():
         print(xt, end='\n\n')
 
         relative_gini_score = []
-        for x in xt:
-            _, counts = np.unique(x, return_counts=True)
-            pk = counts/np.sum(counts)
-            gini_score = np.sum(pk*(1-pk))
+        for p in range(self.parameter_count):
+            sub_class_count = np.max(xt[p]) + 1
+            # print(sub_class_count, self.class_count)
+            count = np.zeros((sub_class_count, self.class_count))
+            # print(count)
 
-            relative_gini_score.append(abs(gini_score - 0.5)) #Higher relative score indicates better split/purity
+            for i in range(self.size):
+                iy = self.y[i]
+                ix = xt[p][i]
 
-        print(relative_gini_score, end='\n\n')
-        return np.argsort(relative_gini_score)[::-1]
+                count[ix][iy] += 1
+            
+            print(count)
+
+
+            # _, counts = np.unique(xt[i], return_counts=True)
+            # pk = counts/np.sum(counts)
+
+            # gini_score = np.sum(pk*(1-pk))
+
+            # relative_gini_score.append(abs(gini_score - 0.5)) #Higher relative score indicates better split/purity
+
+        # print(relative_gini_score, end='\n\n')
+        # return np.argsort(relative_gini_score)[::-1]
     
 dt = DecisionTree()
-dt.dataset([[1, 3, 4], [2, 2, 2], [3, 3, 2], [4, 1, 2], [5, 6, 5]], [[1, 0, 0], [0, 1, 0], [1, 0, 0], [0, 0, 1], [1, 0, 0]])
+dt.dataset([[0, 0, 0], [0, 1, 1], [1, 2, 0]], [0, 0, 1])
 print(dt.classificationSplit())
